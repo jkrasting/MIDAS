@@ -23,10 +23,10 @@ import resource as resource
 import numpy as numpy
 import netCDF4 as netCDF4 
 import datetime as datetime
-from utils import *
-from rectgrid_utils import *
-from rectgrid_gen import *
-from  wright_eos import *
+from .utils import *
+from .rectgrid_utils import *
+from .rectgrid_gen import *
+from  .wright_eos import *
     
 # Optional packages
 
@@ -115,7 +115,7 @@ class quadmesh(object):
     self.simple_grid=simple_grid
 
     if numpy.logical_and(is_cartesian,is_latlon):
-        print 'Select either is_latlon or is_cartesian, not both'
+        print('Select either is_latlon or is_cartesian, not both')
         return None
 
     self.yDir=1
@@ -277,10 +277,8 @@ class quadmesh(object):
   
     
     if var is None and f is not None:
-      print """ Need to specify a variable from which to create a
-                dummy grid since a valid grid option was not
-                specified """
-      raise
+      print("Need to specify a variable from which to create a dummy grid since a valid grid option was notspecified")
+      raise ValueError()
     else:
 
       var_dict = {}
@@ -309,8 +307,8 @@ class quadmesh(object):
           elif lon is not None:
               self.lonh = sq(lon[0,:])
           else:
-              print "Longitude axis not detected "
-              raise
+              print("Longitude axis not detected ")
+              raise ValueError()
           
           if var_dict['Y'] is not None and lat is None:
               lat_axis = f.variables[var_dict['Y']]
@@ -322,8 +320,8 @@ class quadmesh(object):
           elif lat is not None:
               self.lath=sq(lat[:,0])
           else:
-              print "Latitude axis not detected "
-              raise
+              print("Latitude axis not detected ")
+              raise ValueError()
       
 
 
@@ -662,7 +660,7 @@ class quadmesh(object):
     if field in f.variables:
       self.mask = f.variables[field][:]
     else:
-      print ' Field ',field,' is not present in file ',path
+      print(' Field ',field,' is not present in file ',path)
       return None
     
 
@@ -734,7 +732,7 @@ class state(object):
     else:
         var_stagger = stagger.copy()
         if len(var_stagger) != len(fields):
-            print """ Need to provide stagger for each field """
+            print("Need to provide stagger for each field")
             return
         stagger = {}
         n=0
@@ -747,14 +745,14 @@ class state(object):
             try:
                 grid = quadmesh(path,var=fields[0])
             except:
-                print 'No X-Y grid detected, proceeding with no grid information'
+                print('No X-Y grid detected, proceeding with no grid information')
                 grid=None
                 pass
         else:
             try:
                 grid = quadmesh(self.rootgrp,var=fields[0])
             except:
-                print 'No X-Y grid detected, proceeding with no grid information'
+                print('No X-Y grid detected, proceeding with no grid information')
                 grid=None
                 pass
 
@@ -788,7 +786,7 @@ class state(object):
         elif f_interfaces.variables[interfaces].ndim == 4:
             self.vertical_coordinate = 'Generalized'                   
         else:
-            print 'Invalid shape for interface variable'
+            print('Invalid shape for interface variable')
             return None
 
         
@@ -801,15 +799,14 @@ class state(object):
     self.interfaces = None
 
     if memstats:
-        print 'Memory usage in state initialize (01): %s (kb)' % resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        print('Memory usage in state initialize (01): ', resource.getrusage(resource.RUSAGE_SELF).ru_maxrss, '(kb)')
         
     for v in fields:
        try: 
          self.variables[v] = self.rootgrp.variables[v]  # netCDF4 variable object
        except KeyError:
-         print """ Variable named %(v)s does not exist in file named %(path)s
-         Aborting ... """%{'v':v,'path':self.path}
-         raise
+         print(f"Variable named {v} does not exist in file named {self.path} Aborting ... ")
+         raise ValueError()
 
        self.vdict_init(v,stagger[v],z_orientation,time_indices,z_indices)
 
@@ -836,12 +833,12 @@ class state(object):
                vars(self)[v] = vars(self)[v][:,:,::-1,:]
            
        if DEBUG == 1 or verbose == True:
-         print " Successfully extracted data named %(nam)s from %(fil)s "%{'nam':v,'fil':self.path}
-         print " Resulting shape = ",vars(self)[v].shape
-         print " Dictionary keys = ", var_dict.keys()
+         print(f" Successfully extracted data named {nam} from {self.path} ")
+         print(f" Resulting shape = ",vars(self)[v].shape)
+         print(" Dictionary keys = ", list(var_dict.keys()))
 
        if memstats:
-           print 'Memory usage in state initialize (02): %s (kb)' % resource.getrusage(resource.RUSAGE_SELF).ru_maxrss         
+           print('Memory usage in state initialize (02): ',  resource.getrusage(resource.RUSAGE_SELF).ru_maxrss, "(kb)")
 
        var_dict['z_interfaces'] = None
 
@@ -899,9 +896,9 @@ class state(object):
 
 
              if DEBUG == 1 or verbose == True:
-                 print " Successfully extracted interface data named %(nam)s from %(fil)s "%{'nam':interfaces,'fil':path_interfaces}
-                 print " Resulting shape = ",vars(self)[interfaces].shape
-                 print " Max/Min = ",numpy.max(vars(self)[interfaces]),numpy.min(vars(self)[interfaces])
+                 print(f" Successfully extracted interface data named {name} from {path_interfaces} ")
+                 print(" Resulting shape = ",vars(self)[interfaces].shape)
+                 print(" Max/Min = ",numpy.max(vars(self)[interfaces]),numpy.min(vars(self)[interfaces]))
 
 
                  
@@ -910,7 +907,7 @@ class state(object):
        self.vdict_Z_init(var_dict)
        
        if memstats:
-           print 'Memory usage in state initialize (03): %s (kb)' % resource.getrusage(resource.RUSAGE_SELF).ru_maxrss         
+           print('Memory usage in state initialize (03): ', resource.getrusage(resource.RUSAGE_SELF).ru_maxrss) 
           
 
 
@@ -1002,10 +999,8 @@ class state(object):
 
       if var_dict['T'] is not None:
           if time_indices is not None and self.date_bounds is not None:
-              print """
-              Invalid options. select either time_indices or date_bounds
-              not both. """
-              raise()
+              print("Invalid options. select either time_indices or date_bounds not both.")
+              raise ValueError()
           try:
               Tb = getattr(f.variables[var_dict['T']],'bounds')
           except:
@@ -1057,9 +1052,8 @@ class state(object):
                   var_dict['dates']=var_dict['dates'][t_indices]
                   var_dict['date_bounds']=var_dict['date_bounds'][tb_indices]             
               else:
-                  print """
-             Calendar is inactive for %(field)s """%{'field':v}
-                  raise()
+                  print(f"Calendar is inactive for {field}")
+                  raise ValueError()
           else:
               nt = len(f.variables[var_dict['T']][:])
               t_indices=numpy.arange(0,nt)
@@ -1310,7 +1304,7 @@ class state(object):
       self.vdict_init(field,stagger='00',rootgrp=f,time_indices=t_indices)
       var_dict=self.var_dict[field]
     else:
-      print ' Field ',field,' is not present in file ',path
+      print(' Field ',field,' is not present in file ',path)
       return
     
     if MFpath is None:
@@ -1323,7 +1317,7 @@ class state(object):
     geo_region = self.geo_region
 
     if memstats:
-        print 'Memory usage in state add_field (01): %s (kb)' % resource.getrusage(resource.RUSAGE_SELF).ru_maxrss    
+        print('Memory usage in state add_field (01): ', resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
         
     data_read = numpy.array(f.variables[field][var_dict['slice_read']])
     shape_read=var_dict['shape_read']
@@ -1331,14 +1325,14 @@ class state(object):
 
 
     if memstats:
-        print 'Memory usage in state add_field (02): %s (kb)' % resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        print('Memory usage in state add_field (02): ', resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
         
     vars(self)[field] = data_read
     
          
     if DEBUG == 1 or verbose == True:
-      print " Successfully extracted data named %(nam)s from %(fil)s "%{'nam':field,'fil':var_dict['path']}
-      print " Resulting shape = ",vars(self)[field].shape                 
+      print(f" Successfully extracted data named {name} from {fil} ")
+      print(" Resulting shape = ",vars(self)[field].shape)       
 
 
     if var_dict['_FillValue'] is not None or var_dict['missing_value']  is not None:
@@ -1446,8 +1440,7 @@ class state(object):
       shape = vars(self)[field].shape
 
       if shape_result[-1] != shape[3] or shape_result[-2] != shape[2]:
-        print """
-        x-y Shape mismatch in self.mask_where"""
+        print("x-y Shape mismatch in self.mask_where")
         return None
 
       if len(shape_result) ==2:
@@ -1464,8 +1457,7 @@ class state(object):
         elif shape_result[0] == 1 and shape_result[1] == 1:
           result=numpy.tile(result,(shape[0],shape[1],1,1))
         else:
-          print """
-          Error expanding mask """
+          print("Error expanding mask")
           return None
         
       vars(self)[field] = numpy.ma.masked_where(result,vars(self)[field])
@@ -1543,18 +1535,14 @@ class state(object):
     import vertmap_GOLD
 
     if memstats:
-        print 'Memory usage fill_miss (pre): %s (kb)' % resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        print('Memory usage fill_miss (pre): ', resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
     
     if field is None:
-      print """
-       Please specify a field name
-      """
+      print("Please specify a field name")
       return None
 
     if self.var_dict[field]['masked'] is False:
-      print """
-       Input field needs to be masked in  order to use fill
-      """
+      print("Input field needs to be masked in  order to use fill")
       return None
 
     
@@ -1641,7 +1629,7 @@ class state(object):
     vars(self)[field]=val
 
     if memstats:
-        print 'Memory usage fill_miss (post): %s (kb)' % resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        print('Memory usage fill_miss (post): ' , resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
     
     return None
 
@@ -1674,7 +1662,7 @@ class state(object):
     var_dict=self.var_dict[field].copy()
     
     if self.var_dict[field]['Z'] is not None:
-        if 'dz' in self.var_dict[field].keys():
+        if 'dz' in list(self.var_dict[field].keys()):
             dz=self.var_dict[field]['dz'][:]
         else:
             dz = numpy.ones((sout.shape[0],sout.shape[1],self.grid.jm,self.grid.im))      
@@ -1702,7 +1690,7 @@ class state(object):
     if axis.upper() == 'Z':
 
       if self.var_dict[field]['Z'] is None:
-          print "WARNING: Vertical Integral for a field with no axis. No calculations were done."
+          print("WARNING: Vertical Integral for a field with no axis. No calculations were done.")
           return
 
       if normalize:
@@ -1918,12 +1906,12 @@ class state(object):
       
     if axis.upper() == 'XZ' or axis.upper() == 'ZX':
 
-        print 'XZ integrals not implemented '
+        print('XZ integrals not implemented ')
         return
 
     if axis.upper() == 'YZ' or axis.upper() == 'ZY':
 
-        print 'YZ integrals not implemented '
+        print('YZ integrals not implemented ')
         return
 
     if axis.upper() == 'XYZ':
@@ -2232,8 +2220,8 @@ class state(object):
     weights = numpy.ma.masked_where(weights==0.,weights)
 
     if DEBUG:
-        print 'weights=',weights
-        print 'result 001=',result
+        print('weights=',weights)
+        print('result 001=',result)
         
     result = result / weights
 
@@ -2271,7 +2259,7 @@ class state(object):
             tmp = 0.5*(var_dict['z_interfaces']+numpy.roll(var_dict['z_interfaces'],axis=1,shift=-1))
             var_dict['z'] = tmp[:,0:-1,:,:]          
 
-    mod_yr=0001
+    mod_yr=1
     dates=make_monthly_axis(mod_yr)
     date0=datetime.datetime(mod_yr,1,1)
 
@@ -2420,7 +2408,7 @@ class state(object):
     var_dict = dict.copy(self.var_dict[field]) # inherit variable dictionary from parent 
 
     clim_name = field+'_monthly'
-    if clim_name not in self.var_dict.keys():
+    if clim_name not in list(self.var_dict.keys()):
         self.monthly_avg(field)
 
     cmd = string.join(['climout=self.',clim_name],sep='')
@@ -2465,12 +2453,10 @@ class state(object):
     import vertmap_GOLD 
 
     if self.var_dict[temp_name]['Ztype'] is not 'Fixed':
-      print """
-        Need to provide z-space temperature and salinity in call to remap_Z_to_layers
-        """
+      print("Need to provide z-space temperature and salinity in call to remap_Z_to_layers")
       return None
 
-    print '...Filling interior points in z-space'
+    print('...Filling interior points in z-space')
     
     self.fill_interior(temp_name,smooth=smooth,num_pass=num_pass)
     self.fill_interior(salt_name,smooth=smooth,num_pass=num_pass)
@@ -2517,21 +2503,21 @@ class state(object):
     for n in numpy.arange(nt):
         rho=self.sigma[n,:].T
         zi_n = zi[:,n]
-        print '...Finding interface positions '
+        print('...Finding interface positions ')
         zi_n=vertmap_GOLD.vertmap_gold_mod.find_interfaces(rho,zax,Rb,depth,nlevs,nkml,nkbl,hml)
         zi_n[:,:,1:][zi_n[:,:,1:]>-hml]=-hml
         ptemp=vars(self)[temp_name][n,:].T
         salinity=vars(self)[salt_name][n,:].T
-        print '...Remapping temperature '
+        print('...Remapping temperature ')
         temp_n=vertmap_GOLD.vertmap_gold_mod.tracer_z_init(ptemp,-zbax,zi_n,nkml,nkbl,land_fill,wet_,len(R),nlevs)
         temp_n=temp_n.astype('float64')
-        print '...Remapping salinity '
+        print('...Remapping salinity ')
         salt_n=vertmap_GOLD.vertmap_gold_mod.tracer_z_init(salinity,-zbax,zi_n,nkml,nkbl,land_fill,wet_,len(R),nlevs)
         salt_n=salt_n.astype('float64')        
         h_n=zi_n-numpy.roll(zi_n,axis=2,shift=-1)
         h_n=h_n.astype('float64')        
         if fit_target:
-            print '...Adjusting temp/salt to fit target densities '
+            print('...Adjusting temp/salt to fit target densities ')
             vertmap_GOLD.vertmap_gold_mod.determine_temperature(temp_n,salt_n,R,p_ref,10,land_fill,h_n,nkml+nkbl+1)
         zi[:,:,:,n]=zi_n
         temp[:,:,:,n]=temp_n
@@ -2609,11 +2595,11 @@ class state(object):
     try:
         import vertmap_ALE
     except:
-        print """ ALE/vertmap not installed """
+        print("ALE/vertmap not installed")
         return 
 
     if z_bounds is None:
-        print 'No output grid in call to vert_remap'
+        print('No output grid in call to vert_remap')
         return
     else:
         if z_bounds.ndim == 4:
@@ -2730,10 +2716,10 @@ class state(object):
             xb2= -sq(xb2).T
 
             if memstats:
-                print 'Memory usage vertmap_ALE (pre): %s (kb)' % resource.getrusage(resource.RUSAGE_SELF).ru_maxrss                        
+                print('Memory usage vertmap_ALE (pre): ' , resource.getrusage(resource.RUSAGE_SELF).ru_maxrss )                       
             vertmap_ALE.pyale_mod.remap(data,data2,xb1,xb2,method,bndy_extrapolation=bndy_extrapolation,missing=missing_value)
             if memstats:
-                print 'Memory usage vertmap_ALE (post): %s (kb)' % resource.getrusage(resource.RUSAGE_SELF).ru_maxrss            
+                print('Memory usage vertmap_ALE (post): ' , resource.getrusage(resource.RUSAGE_SELF).ru_maxrss )           
             data2=data2.T
             xb2=-xb2.T
 
@@ -2879,30 +2865,28 @@ class state(object):
     
     import fms_hinterp as hinterp
 
-    print 'Memory usage hinterp (pre): %s (kb)' % resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    print('Memory usage hinterp (pre): ' , resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
     
     is_vector = False
     if field_x is not None:
         if field_y is not None:
             is_vector=True
         else:
-            print """If field_x is not None then field_y should be not None as well"""
+            print("If field_x is not None then field_y should be not None as well")
             return
     elif field_y is not None:
-        print """If field_x is not None then field_y should be not None as well"""
+        print("If field_x is not None then field_y should be not None as well")
         return
 
     if is_vector:
         if self.var_dict[field_x]['Z'] is not None:
             if self.var_dict[field_x]['Ztype'] is not 'Fixed':
-                print """horiz_interp currently only configured for geopotential
-              coordinate data """
+                print("horiz_interp currently only configured for geopotential coordinate data")
                 return None
     else:
         if self.var_dict[field]['Z'] is not None:
             if self.var_dict[field]['Ztype'] is not 'Fixed':
-                print """horiz_interp currently only configured for geopotential
-              coordinate data """
+                print("horiz_interp currently only configured for geopotential coordinate data")
                 return None
 
 
@@ -2930,7 +2914,7 @@ class state(object):
             lon_in=lon_in
             lat_in=lat_in
         else:
-            print """ Unable to read grid cell boundaries on input grid"""
+            print("Unable to read grid cell boundaries on input grid")
             return None
 
 
@@ -2939,8 +2923,7 @@ class state(object):
             lon_out = target.x_T_bounds
             lat_out = target.y_T_bounds
         elif hasattr(target,'x'):
-            print """Conservative interpolation not available for
-                  supergrids"""
+            print("Conservative interpolation not available for supergrids")
             return None
         
 
@@ -2953,7 +2936,7 @@ class state(object):
             yax1=self.grid.lath
             lon_in,lat_in = numpy.meshgrid(xax1,yax1)
         else:
-            print """ Unable to read grid cell boundaries on input grid"""
+            print("Unable to read grid cell boundaries on input grid")
             return None
             
         if hasattr(target,'x_T'):
@@ -2965,7 +2948,7 @@ class state(object):
             lon_out = target.x
             lat_out = target.y
     else:
-        print 'Invalid method in call to hinterp'
+        print('Invalid method in call to hinterp')
         return None
       
     max_lat_in = numpy.max(lat_in)
@@ -3277,7 +3260,7 @@ class state(object):
             vars(S)[field] = numpy.ma.masked_where(numpy.abs(varout - missing) < numpy.abs(missing)*1.e-3,varout)
 
             
-    print 'Memory usage hinterp (post): %s (kb)' % resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    print('Memory usage hinterp (post): ' , resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
     
     return S
 
@@ -3346,23 +3329,19 @@ class state(object):
       try:      
           from mpl_toolkits.basemap import interp as Interp
       except:
-          print """ need mpl_toolkits.basemap for this function """
+          print("need mpl_toolkits.basemap for this function")
           return
 
 
 
       if self.grid.is_latlon :
           if target.is_cartesian is True:
-              print """
-                 subtile does not work between cartesian grids and lat-lon grids
-                    """
+              print("subtile does not work between cartesian grids and lat-lon grids")
               return None
 
       if target.is_latlon :
           if self.grid.is_cartesian is True:
-              print """
-                 subtile does not work between cartesian grids and lat-lon grids
-                    """
+              print("subtile does not work between cartesian grids and lat-lon grids")
               return None
           
       
@@ -3379,7 +3358,7 @@ class state(object):
       if field is not None:
           shape_in=vars(self)[field].shape
           if numpy.logical_or(shape_in[0]>1,shape_in[1]>1):
-              print "subtile is currently only written to handle lat-lon arrays without a time or vertical dimension"
+              print("subtile is currently only written to handle lat-lon arrays without a time or vertical dimension")
               return None
           
       nj_in = self.grid.lath.shape[0]; ni_in = self.grid.lonh.shape[0]
@@ -3390,7 +3369,7 @@ class state(object):
           lon_edge_in=self.grid.lonq.copy()
           lat_edge_in=self.grid.latq.copy()          
       else:
-          print """ Unable to read grid cell locations on input grid"""
+          print("Unable to read grid cell locations on input grid")
           return None
 
       target_type = -1
@@ -3406,8 +3385,8 @@ class state(object):
           lat_out = target.y_T_bounds.copy()
 
       if target_type < 0 :
-          print 'unknown target grid type '
-          raise
+          print('unknown target grid type ')
+          raise ValueError()
       
       if target.is_latlon is True:
           lon_out[lon_out<lon_edge_in[0]]=lon_out[lon_out<lon_edge_in[0]]+360.0
@@ -3449,10 +3428,10 @@ class state(object):
                       j_list=numpy.arange(j1,j2+1)
                   i_list=numpy.arange(iwest[j,i],ieast[j,i]+1)
                   if debug == 1:
-                      print 'j,i,iwest,ieast= ',j,i,iwest[j,i],ieast[j,i]
+                      print('j,i,iwest,ieast= ',j,i,iwest[j,i],ieast[j,i])
                   if ieast[j,i]<iwest[j,i]:
                       if debug == 1:
-                          print 'ieast<iwest at j,i= ',j,i,ieast[j,i],iwest[j,i]
+                          print('ieast<iwest at j,i= ',j,i,ieast[j,i],iwest[j,i])
                       if target_type == 0:
                           if target.dict['cyclic_x'] and ieast[j,i]==0:
                               i_list=numpy.arange(iwest[j,i],ni_in)
@@ -3468,8 +3447,8 @@ class state(object):
                               i_list = numpy.concatenate((numpy.arange(i2,ni_in),numpy.arange(0,i1+1)))
 
                       if debug == 1:
-                          print 'i_list count=',len(i_list)
-                          print 'i_list = ',i_list
+                          print('i_list count=',len(i_list))
+                          print('i_list = ',i_list)
 
                           
                   i_arr,j_arr = numpy.meshgrid(i_list,j_list)
@@ -3653,7 +3632,7 @@ class state(object):
           rank_cutoff=rank
           for n in numpy.arange(0,rank):
               cvv=cvv+fcv[n]
-              print 'evec#=',n,' ; % ',fcv[n], ' cum % ',cvv
+              print('evec#=',n,' ; % ',fcv[n], ' cum % ',cvv)
               if cvv > cutoff_percentage: 
                   rank_cutoff=n
                   break
@@ -3664,7 +3643,7 @@ class state(object):
               efunct[:,n]=efunct[:,n]/numpy.sqrt(w[n])
 
           for n in numpy.arange(1,rank_cutoff):
-              print 'efunct.dot (0,',n,') = ', efunct[:,0].dot(efunct[:,n])
+              print('efunct.dot (0,',n,') = ', efunct[:,0].dot(efunct[:,n]))
           
 
           efunc=numpy.zeros((nv,rank_cutoff))
@@ -3674,7 +3653,7 @@ class state(object):
                   efunc[i,j]=arr[:,i].dot(efunct[:,j]) 
 
           for n in numpy.arange(1,rank_cutoff):
-              print 'efunc.dot (0,',n,') = ', efunc[:,0].dot(efunc[:,n])
+              print('efunc.dot (0,',n,') = ', efunc[:,0].dot(efunc[:,n]))
                   
       else:
           cov=numpy.zeros((nv,nv))
@@ -3702,7 +3681,7 @@ class state(object):
           cutoff_percentage=trunc*100.0
           for n in numpy.arange(0,rank):
               cvv=cvv+fcv[n]
-              print 'eigenvector=',n,' ; % ',fcv[n], ' cumulative % ',cvv
+              print('eigenvector=',n,' ; % ',fcv[n], ' cumulative % ',cvv)
               if cvv > cutoff_percentage: 
                   rank_cutoff=n
                   break
@@ -3713,7 +3692,7 @@ class state(object):
               efunc[:,n]=efunc[:,n]/numpy.sqrt(w[n])
 
           for n in numpy.arange(1,rank_cutoff):
-              print 'efunc.dot (0,',n,') = ', efunc[:,0].dot(efunc[:,n])
+              print('efunc.dot (0,',n,') = ', efunc[:,0].dot(efunc[:,n]))
 
 ####
 
@@ -3740,7 +3719,7 @@ class state(object):
           efunc[:,n]=efunc[:,n]*norm*v # data units
               
       for n in numpy.arange(1,rank_cutoff):
-          print 'pc.dot (0,',n,') = ', pc[:,0].dot(pc[:,n])
+          print('pc.dot (0,',n,') = ', pc[:,0].dot(pc[:,n]))
               
       expression='self.'+field+'[0,0,:]'+'*0.0'
       nam=field+'_evec'
@@ -3896,7 +3875,7 @@ class state(object):
 
     """
     if verbose:
-        print 'Memory usage write_nc(pre): %s (kb)' % resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        print('Memory usage write_nc(pre): ' , resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
     
     if fields is None:
       return None
@@ -3912,7 +3891,7 @@ class state(object):
     if append == True:
         if os.path.exists(filename):
             if verbose:
-                print '%s exists, appending ' %(filename)
+                print(f"{filename} exists, appending ")
             file_exists = True
             f=netCDF4.Dataset(filename,'a',format=format)
             dimlist = f.dimensions
@@ -3932,7 +3911,7 @@ class state(object):
         outv=[]
         for field in fields:
             if field not in vars:
-                print " Attempting to append %(fld)s to existing file %(fn)s "%{'fld':field,'fn':filename}
+                print(f" Attempting to append {field} to existing file {filename} ")
                 return
 
             dim_nam=str(self.var_dict[field]['T'])
@@ -4009,9 +3988,9 @@ class state(object):
                     tdat=tdat_
                 tdim=f.createDimension(dim_nam,None)
                 tv=f.createVariable(dim_nam,'f8',(dim_nam,))
-                if self.var_dict[field].has_key('tunits'):
+                if 'tunits' in self.var_dict[field]:
                     tv.units= self.var_dict[field]['tunits']
-                if self.var_dict[field].has_key('calendar'):              
+                if 'calendar' in self.var_dict[field]:              
                     tv.calendar= self.var_dict[field]['calendar']
 
                 nt=len(tdat)
@@ -4043,7 +4022,7 @@ class state(object):
 
             if self.var_dict[field]['Z'] is not None:
                 if self.var_dict[field]['Ztype'] in ['Generalized','Isopycnal','Fixed'] and write_interfaces is False:
-                    if 'z_interfaces' in self.var_dict[field].keys():
+                    if 'z_interfaces' in list(self.var_dict[field].keys()):
                         if self.var_dict[field]['z_interfaces'] is not None:
                             if  self.var_dict[field]['Ztype'] == 'Fixed' and write_interface_positions == True:
                                 write_interfaces = True
@@ -4091,10 +4070,10 @@ class state(object):
             dims.append(dim_nam)
             xdim=f.createDimension(dim_nam,len(ziax))
             xv=f.createVariable(dim_nam,'f8',(dim_nam,))
-            if self.var_dict[self.interfaces].has_key('zunits'):
+            if 'zunits' in self.var_dict[self.interfaces]:
                 xv.units =   self.var_dict[self.interfaces]['zunits']
             xv.cartesian_axis = 'Z'
-            if self.var_dict[self.interfaces].has_key('Zdir'):            
+            if 'Zdir' in self.var_dict[self.interfaces]:            
                 xv.orientation = self.var_dict[self.interfaces]['Zdir']
             xv[:]=ziax
 
@@ -4111,7 +4090,7 @@ class state(object):
                 dims.append(str(self.var_dict[field]['X']))
 
             if DEBUG == 1:
-                print 'field=',field,'dims= ',dims
+                print('field=',field,'dims= ',dims)
 
             FillValue=None
             if self.var_dict[field]['_FillValue'] is not None and self.var_dict[field]['missing_value'] is not None:
@@ -4131,10 +4110,10 @@ class state(object):
             if self.var_dict[field]['missing_value'] is not None:
                 var.missing_value = self.var_dict[field]['missing_value']
 
-            if 'longname' in self.var_dict[field].keys():
+            if 'longname' in list(self.var_dict[field].keys()):
                 var.longname = self.var_dict[field]['longname']
           
-            if 'units' in self.var_dict[field].keys():
+            if 'units' in list(self.var_dict[field].keys()):
                 var.units = self.var_dict[field]['units']
           
             outv.append(var)
@@ -4206,7 +4185,7 @@ class state(object):
     f.close()
 
     if verbose:
-        print 'Memory usage write_nc(post): %s (kb)' % resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        print('Memory usage write_nc(post): ' , resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
     
   def fill_nearest(self,field):
 
@@ -4240,14 +4219,14 @@ class state(object):
       """
 
       if path is None or varin is None or varout is None:
-          print """ path, varin and varout need to be specified """
+          print("path, varin and varout need to be specified")
           return
 
       grid_obs = quadmesh(path,var=varin)
       O=state(path,grid=grid_obs,fields=[varin],default_calendar='noleap')
 
       
-      if ~O.var_dict[varin].has_key('Ztype'):
+      if ~('Ztype' in O.var_dict[varin]):
           O.var_dict[varin]['Ztype'] = 'Fixed'
 
       if monthly_clim:
@@ -4319,7 +4298,7 @@ class state(object):
       
     dict['variables'] = {}
     
-    for v in dict['var_dict'].keys():
+    for v in list(dict['var_dict'].keys()):
       dict['variables'][v] = v
       
     self.__dict__.update(dict)

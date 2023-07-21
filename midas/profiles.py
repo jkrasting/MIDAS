@@ -16,7 +16,7 @@ import netCDF4 as netCDF4
 import datetime as datetime
 import copy
 from dateutil import parser
-from wright_eos import *
+from .wright_eos import *
 from numpy import squeeze as sq
 import string
 
@@ -133,7 +133,7 @@ class profile_index(object):
 
     for L in self.dict:
       f.write('===============================\n')
-      for key,val in L.items():
+      for key,val in list(L.items()):
         txt= '%(k)s = %(v)s \n'%{'k':key,'v':val}
         f.write(txt)
 
@@ -168,7 +168,7 @@ class profile_list(object):
                 f=netCDF4.Dataset(root+file['path'])
               except:
                 if verbose:
-                  print "Unable to open "+root+file['path']
+                  print("Unable to open "+root+file['path'])
                 continue
               
               date_string = file['date_string']
@@ -264,7 +264,7 @@ class profile_list(object):
         data=numpy.squeeze(pr.data[var])
         z=numpy.squeeze(pr.data['pressure'])
       except:
-        print 'unable to find ',var
+        print('unable to find ',var)
         raise
 
       try:
@@ -325,13 +325,13 @@ class profile_list(object):
 
   def show_profile_ids(self):
 
-    print 'UNIQUE WMOID LIST'
-    print '================='
+    print('UNIQUE WMOID LIST')
+    print('=================')
 
     prev_id = ''
     for pr in self.pr:
       if pr.data['wmoid'] != prev_id:
-        print pr.data['wmoid']
+        print(pr.data['wmoid'])
         prev_id = pr.data['wmoid'] 
 
         
