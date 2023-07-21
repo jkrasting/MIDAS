@@ -26,12 +26,12 @@
 """
 
 
-import profiles 
-import wright_eos
-import utils
-import rectgrid
-import rectgrid_gen
-import rectgrid_utils
+from . import profiles 
+from . import wright_eos
+from . import utils
+from . import rectgrid
+from . import rectgrid_gen
+from . import rectgrid_utils
 
 
 
