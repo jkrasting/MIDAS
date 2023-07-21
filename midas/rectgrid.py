@@ -1129,7 +1129,7 @@ class state(object):
                  
                var_dict['zbax_data'] = f.variables[var_dict['Zb']][:]
 
-               if var_dict['Ztype'] is 'Fixed':
+               if var_dict['Ztype'] == 'Fixed':
                    if f.variables[var_dict['Zb']].ndim == 2:
                        zb_last = f.variables[var_dict['Zb']][-1,1]
                        var_dict['zbax_data']=var_dict['zbax_data'][:,0]
@@ -1240,7 +1240,7 @@ class state(object):
        else:
            var_dict['Ztype']='Fixed'
 
-       if var_dict['Z'] is not None and var_dict['Ztype'] is 'Fixed' and self.interfaces is None:
+       if var_dict['Z'] is not None and var_dict['Ztype'] == 'Fixed' and self.interfaces is None:
 
          if var_dict['zbax_data'] is not None:  # Construct interface positions using mid-points between levels
            zind=var_dict['slice_read'][1];nz=len(zind)
@@ -1262,7 +1262,7 @@ class state(object):
            var_dict['dz'] = (var_dict['z_interfaces'] - numpy.roll(var_dict['z_interfaces'],axis=0,shift=-1))
            var_dict['dz'] = var_dict['dz'][0:-1,:,:]
 
-       if var_dict['Z'] is not None and var_dict['Ztype'] is 'Fixed' and self.interfaces is not None:
+       if var_dict['Z'] is not None and var_dict['Ztype'] == 'Fixed' and self.interfaces is not None:
            var_dict['z_interfaces']  = vars(self)[self.interfaces]
                
            tmp = 0.5*(var_dict['z_interfaces']+numpy.roll(var_dict['z_interfaces'],axis=0,shift=-1))             
@@ -1271,7 +1271,7 @@ class state(object):
            var_dict['dz'] = (var_dict['z_interfaces'] - numpy.roll(var_dict['z_interfaces'],axis=0,shift=-1))
            var_dict['dz'] = var_dict['dz'][0:-1,:,:]
            
-       if var_dict['Z'] is not None and var_dict['Ztype'] is 'Generalized' and self.interfaces is not None:
+       if var_dict['Z'] is not None and var_dict['Ztype'] == 'Generalized' and self.interfaces is not None:
            var_dict['z_interfaces']  = vars(self)[self.interfaces]
                
            tmp = 0.5*(var_dict['z_interfaces']+numpy.roll(var_dict['z_interfaces'],axis=1,shift=-1))             
@@ -1487,7 +1487,7 @@ class state(object):
     if field is None:
       return None
 
-    if self.var_dict[field]['Ztype'] is not 'Fixed':
+    if self.var_dict[field]['Ztype'] != 'Fixed':
         e=self.var_dict[field]['z_interfaces']
         eb = 0.5*(e+numpy.roll(e,shift=-1,axis=3))
         self.var_dict[field]['z_interfaces_ew']=numpy.concatenate((numpy.take(eb,[-1],axis=3),eb),axis=3)
@@ -1722,7 +1722,7 @@ class state(object):
 
       var_dict['Z']=None
 
-      if self.var_dict[field]['Ztype'] is 'Fixed':
+      if self.var_dict[field]['Ztype'] == 'Fixed':
           zlow=numpy.take(var_dict['z_interfaces'],[-1],axis=0)                
           zup=numpy.take(var_dict['z_interfaces'],[0],axis=0)
           var_dict['z_interfaces']=numpy.concatenate((zup,zlow),axis=0)
@@ -1772,7 +1772,7 @@ class state(object):
 
       
       if var_dict['Z'] is not None:
-        if var_dict['Ztype'] is 'Fixed':
+        if var_dict['Ztype'] == 'Fixed':
             var_dict['dz'] = numpy.sum(dz*dz*dy*dx,axis=1)/numpy.sum(dz*dy*dx,axis=1)  
             var_dict['dz']=numpy.reshape(var_dict['dz'],(nz,1,im))      
             z0 = numpy.take(var_dict['z_interfaces'],[0],axis=0)
@@ -1822,7 +1822,7 @@ class state(object):
 
       
       if var_dict['Z'] is not None:
-        if var_dict['Ztype'] is 'Fixed':
+        if var_dict['Ztype'] == 'Fixed':
             var_dict['dz'] = numpy.sum(dz*dz*dy*dx,axis=2)/numpy.sum(dz*dy*dx,axis=2)  
             var_dict['dz']=numpy.reshape(var_dict['dz'],(nz,jm,1))      
             z0 = numpy.take(var_dict['z_interfaces'],[0],axis=0)
@@ -1873,7 +1873,7 @@ class state(object):
 
       
       if var_dict['Z'] is not None:
-        if var_dict['Ztype'] is 'Fixed' and var_dict['Z'] is not None:
+        if var_dict['Ztype'] == 'Fixed' and var_dict['Z'] is not None:
             var_dict['dz'] = numpy.sum(numpy.sum(dz*dz*dy*dx,axis=2),axis=1)/numpy.sum(numpy.sum(dz*dy*dx,axis=2),axis=1)
             var_dict['dz']=numpy.reshape(var_dict['dz'],(nz,1,1))      
             z0 = numpy.take(var_dict['z_interfaces'],[0],axis=0)
@@ -1976,7 +1976,7 @@ class state(object):
         
     if vol_weight == True:
         if self.var_dict[field]['Z'] is not None:
-            if self.var_dict[field]['Ztype'] is 'Fixed':
+            if self.var_dict[field]['Ztype'] == 'Fixed':
                 
                 w=self.var_dict[field]['dz'][:]
                 w = numpy.tile(w,(sout.shape[0],1,1,1))
@@ -2020,7 +2020,7 @@ class state(object):
     ntimes[:]=missing
     nzp=shape[1]+1
 
-    if var_dict['Z'] is not 'Fixed':
+    if var_dict['Z'] != 'Fixed':
         interfaces= numpy.ma.zeros((numpy.hstack((nt,nzp,shape[2:]))))
     else:
         interfaces = numpy.ma.zeros((numpy.hstack((nzp,shape[2:]))))
@@ -2042,7 +2042,7 @@ class state(object):
                   result[j,:,:,:]=numpy.sum(sout[ts:te,:,:,:]*w_masked[ts:te,:,:,:],axis=0)/numpy.sum(w_masked[ts:te,:,:,:],axis=0)
 
               if var_dict['z_interfaces'] is not None:
-                  if var_dict['Ztype'] is not 'Fixed':
+                  if var_dict['Ztype'] != 'Fixed':
                       if self.var_dict[field]['masked']:
                           interfaces[j,:,:,:]=numpy.ma.sum(var_dict['z_interfaces'][ts:te,:,:,:]*dt[ts:te],axis=0)/numpy.ma.sum(dt[ts:te])                          
                       else:
@@ -2056,7 +2056,7 @@ class state(object):
           result = numpy.ma.masked_where(result == missing, result)
 
           if var_dict['Z'] is not None:
-              if var_dict['Ztype'] is 'Fixed':
+              if var_dict['Ztype'] == 'Fixed':
                   if var_dict['z_interfaces'] is not None:        
                       interfaces=var_dict['z_interfaces'][:]
                       dz=numpy.ma.zeros(numpy.hstack(sout.shape[1:]))
@@ -2066,7 +2066,7 @@ class state(object):
                   dz = numpy.ma.zeros((numpy.hstack((nt,sout.shape[1:]))))
 
               if var_dict['z_interfaces'] is not None:
-                  if var_dict['Ztype'] is not 'Fixed':        
+                  if var_dict['Ztype'] != 'Fixed':        
                       for k in numpy.arange(0,sout.shape[1]):
                           dz[:,k,:,:]=interfaces[:,k,:,:]-interfaces[:,k+1,:,:]
                   else:
@@ -2074,7 +2074,7 @@ class state(object):
                           dz[k,:,:]=interfaces[k,:,:]-interfaces[k+1,:,:]
 
     if var_dict['Z'] is not None:
-        if var_dict['Ztype'] is not 'Fixed':        
+        if var_dict['Ztype'] != 'Fixed':        
             var_dict['z_interfaces']=interfaces
             var_dict['dz']=numpy.squeeze(dz)
             tmp = 0.5*(var_dict['z_interfaces']+numpy.roll(var_dict['z_interfaces'],axis=0,shift=-1))
@@ -2155,7 +2155,7 @@ class state(object):
         # weights are equal to the thickness
         #
         if self.var_dict[field]['Z'] is not None:
-            if self.var_dict[field]['Ztype'] is 'Fixed':
+            if self.var_dict[field]['Ztype'] == 'Fixed':
 
                 dz=self.var_dict[field]['dz'][:]
                 w = numpy.tile(dz,(sout.shape[0],1,1,1))
@@ -2206,7 +2206,7 @@ class state(object):
       wgt_ptr[tmp.mask==False]=wgt_ptr[tmp.mask==False]+w_ptr[tmp.mask==False]
 
       if var_dict['Z'] is not None:
-          if var_dict['Ztype'] is not 'Fixed' and var_dict['z_interfaces'] is not None:
+          if var_dict['Ztype'] != 'Fixed' and var_dict['z_interfaces'] is not None:
               int_ptr=interfaces[months[i]-1,:]
               zi=var_dict['z_interfaces'][i,:]
               int_ptr[tmp.mask==False]=zi[tmp.mask==False]+int_ptr[tmp.mask==False]
@@ -2233,7 +2233,7 @@ class state(object):
         result = numpy.ma.masked_where(nsap==0.,result)
     
     if var_dict['Z'] is not None:
-        if var_dict['Ztype'] is not 'Fixed' and var_dict['z_interfaces'] is not None:
+        if var_dict['Ztype'] != 'Fixed' and var_dict['z_interfaces'] is not None:
             interfaces = interfaces/nsamp
             interfaces = numpy.ma.masked_where(nsamp==0.,interfaces)
       
@@ -2241,18 +2241,18 @@ class state(object):
 
 
     if var_dict['Z'] is not None:                
-        if var_dict['Ztype'] is not 'Fixed' and var_dict['z_interfaces'] is not None:
+        if var_dict['Ztype'] != 'Fixed' and var_dict['z_interfaces'] is not None:
             dz = numpy.ma.zeros((numpy.hstack((12,sout.shape[1:]))))
             
         for i in numpy.arange(0,12):
             for k in numpy.arange(0,sout.shape[1]):
                 dz[i,k,:,:]=interfaces[i,k,:,:]-interfaces[i,k+1,:,:]
 
-        if var_dict['Ztype'] is not 'Fixed':
+        if var_dict['Ztype'] != 'Fixed':
             var_dict['z_interfaces']=interfaces
             var_dict['dz']=dz
             
-        if self.var_dict[field]['Ztype'] is 'Fixed':
+        if self.var_dict[field]['Ztype'] == 'Fixed':
             tmp = 0.5*(var_dict['z_interfaces']+numpy.roll(var_dict['z_interfaces'],axis=0,shift=-1))
             var_dict['z'] = tmp[0:-1,:,:]
         else:
@@ -2318,7 +2318,7 @@ class state(object):
     if vol_weight == True:
         if self.var_dict[field]['Z'] is not None:
             do_vol=True
-            if self.var_dict[field]['Ztype'] is 'Fixed':
+            if self.var_dict[field]['Ztype'] == 'Fixed':
 
                 dz=self.var_dict[field]['dz'][:]
                 w = numpy.tile(dz,(sout.shape[0],1,1,1))
@@ -2452,7 +2452,7 @@ class state(object):
 
     import vertmap_GOLD 
 
-    if self.var_dict[temp_name]['Ztype'] is not 'Fixed':
+    if self.var_dict[temp_name]['Ztype'] != 'Fixed':
       print("Need to provide z-space temperature and salinity in call to remap_Z_to_layers")
       return None
 
@@ -2880,12 +2880,12 @@ class state(object):
 
     if is_vector:
         if self.var_dict[field_x]['Z'] is not None:
-            if self.var_dict[field_x]['Ztype'] is not 'Fixed':
+            if self.var_dict[field_x]['Ztype'] != 'Fixed':
                 print("horiz_interp currently only configured for geopotential coordinate data")
                 return None
     else:
         if self.var_dict[field]['Z'] is not None:
-            if self.var_dict[field]['Ztype'] is not 'Fixed':
+            if self.var_dict[field]['Ztype'] != 'Fixed':
                 print("horiz_interp currently only configured for geopotential coordinate data")
                 return None
 
@@ -4122,7 +4122,7 @@ class state(object):
         if write_interfaces:
             dims=[]
             for field in fields:
-                if  self.var_dict[field]['stagger'] is '00' and self.var_dict[field]['Z'] is not None:
+                if  self.var_dict[field]['stagger'] == '00' and self.var_dict[field]['Z'] is not None:
                     self.var_dict[ifield]['T']=self.var_dict[field]['T']                    
                     self.var_dict[ifield]['X']=self.var_dict[field]['X']
                     self.var_dict[ifield]['Y']=self.var_dict[field]['Y']
@@ -4170,9 +4170,9 @@ class state(object):
                     outv[m][n,:]=sq(self.__dict__[field][n-tstart,:])
 
 
-                if write_interfaces and self.var_dict[field]['Ztype'] is 'Fixed' and p == 0:
+                if write_interfaces and self.var_dict[field]['Ztype'] == 'Fixed' and p == 0:
                     outv[-1][:]=sq(zi[:])
-                elif write_interfaces and self.var_dict[field]['Ztype'] is not 'Fixed':
+                elif write_interfaces and self.var_dict[field]['Ztype'] != 'Fixed':
                     outv[-1][n,:]=sq(zi[n-tstart,:])
 
                 tv[n]=tdat[n-tstart]
